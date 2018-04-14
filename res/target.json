@@ -1,0 +1,304 @@
+[
+  {
+	"uid": "ExtVnfCpd1",
+	"types": [
+	  "tosca.nodes.nfv.VnfExtCpd",
+	  "tosca.nodes.nfv.Cpd",
+	  "tosca.nodes.Root"
+	],
+	"attributes": {
+	  "status": "Started",
+	  "resource_id": null,
+	  "ip_address": null
+	},
+	"references": [],
+	"interfaces": [
+	  {
+		"name": "create",
+		"condition": {
+		  "status": "Initial"
+		},
+		"effect": {
+		  "status": "Started"
+		}
+	  },
+	  {
+		"name": "delete",
+		"condition": {
+		  "status": "Started"
+		},
+		"effect": {
+		  "status": "Deleted"
+		}
+	  }
+	]
+  },
+  {
+	"uid": "Vdu1",
+	"types": [
+	  "tosca.nodes.nfv.VDU.Compute",
+	  "tosca.nodes.Root"
+	],
+	"attributes": {
+	  "status": "Started",
+	  "resource_id": null,
+	  "flavor_id": "m1.medium",
+	  "image_id": "image_stab"
+	},
+	"references": [
+	  {
+		"target_node": "ExtVnfCpd1",
+		"relationship_types": [
+		  "tosca.relationships.nfv.VirtualBindsTo",
+		  "tosca.relationships.DependsOn"
+		]
+	  },
+	  {
+		"target_node": "VduCpd1",
+		"relationship_types": [
+		  "tosca.relationships.nfv.VirtualBindsTo",
+		  "tosca.relationships.DependsOn"
+		]
+	  }
+	],
+	"interfaces": [
+	  {
+		"name": "create",
+		"condition": {
+		  "status": "Initial"
+		},
+		"effect": {
+		  "status": "Created"
+		}
+	  },
+	  {
+		"name": "configure",
+		"condition": {
+		  "status": "Created"
+		},
+		"effect": {
+		  "status": "Started"
+		}
+	  },
+	  {
+		"name": "delete",
+		"condition": {
+		  "status": "Started"
+		},
+		"effect": {
+		  "status": "Deleted"
+		}
+	  }
+	]
+  },
+  {
+	"uid": "VduCpd1",
+	"types": [
+	  "tosca.nodes.nfv.VduCpd",
+	  "tosca.nodes.nfv.Cpd",
+	  "tosca.nodes.Root"
+	],
+	"attributes": {
+	  "status": "Started",
+	  "resource_id": null,
+	  "ip_address": "172.16.1.201"
+	},
+	"references": [
+	  {
+		"target_node": "VnfVl",
+		"relationship_types": [
+		  "tosca.relationships.nfv.VirtualLinksTo",
+		  "tosca.relationships.DependsOn"
+		]
+	  }
+	],
+	"interfaces": [
+	  {
+		"name": "create",
+		"condition": {
+		  "status": "Initial"
+		},
+		"effect": {
+		  "status": "Started"
+		}
+	  },
+	  {
+		"name": "delete",
+		"condition": {
+		  "status": "Started"
+		},
+		"effect": {
+		  "status": "Deleted"
+		}
+	  }
+	]
+  },
+  {
+	"uid": "VnfVl",
+	"types": [
+	  "tosca.nodes.nfv.VnfVirtualLinkDesc",
+	  "tosca.nodes.Root"
+	],
+	"attributes": {
+	  "status": "Started",
+	  "resource_id": null,
+	  "name": "data-net",
+	  "cidr": "172.16.1.0/ 24"
+	},
+	"references": [],
+	"interfaces": [
+	  {
+		"name": "create",
+		"condition": {
+		  "status": "Initial"
+		},
+		"effect": {
+		  "status": "Started"
+		}
+	  },
+	  {
+		"name": "delete",
+		"condition": {
+		  "status": "Started"
+		},
+		"effect": {
+		  "status": "Deleted"
+		}
+	  }
+	]
+  },
+  {
+	"uid": "VduCpd2",
+	"types": [
+	  "tosca.nodes.nfv.VduCpd",
+	  "tosca.nodes.nfv.Cpd",
+	  "tosca.nodes.Root"
+	],
+	"attributes": {
+	  "status": "Started",
+	  "resource_id": null,
+	  "ip_address": "172.16.1.202"
+	},
+	"references": [
+	  {
+		"target_node": "VnfVl",
+		"relationship_types": [
+		  "tosca.relationships.nfv.VirtualLinksTo",
+		  "tosca.relationships.DependsOn"
+		]
+	  }
+	],
+	"interfaces": [
+	  {
+		"name": "create",
+		"condition": {
+		  "status": "Initial"
+		},
+		"effect": {
+		  "status": "Started"
+		}
+	  },
+	  {
+		"name": "delete",
+		"condition": {
+		  "status": "Started"
+		},
+		"effect": {
+		  "status": "Deleted"
+		}
+	  }
+	]
+  },
+  {
+	"uid": "Vdu2",
+	"types": [
+	  "tosca.nodes.nfv.VDU.Compute",
+	  "tosca.nodes.Root"
+	],
+	"attributes": {
+	  "status": "Started",
+	  "resource_id": null,
+	  "flavor_id": "m1.medium",
+	  "image_id": "image_stab"
+	},
+	"references": [
+	  {
+		"target_node": "ExtVnfCpd2",
+		"relationship_types": [
+		  "tosca.relationships.nfv.VirtualBindsTo",
+		  "tosca.relationships.DependsOn"
+		]
+	  },
+	  {
+		"target_node": "VduCpd2",
+		"relationship_types": [
+		  "tosca.relationships.nfv.VirtualBindsTo",
+		  "tosca.relationships.DependsOn"
+		]
+	  }
+	],
+	"interfaces": [
+	  {
+		"name": "create",
+		"condition": {
+		  "status": "Initial"
+		},
+		"effect": {
+		  "status": "Created"
+		}
+	  },
+	  {
+		"name": "configure",
+		"condition": {
+		  "status": "Created"
+		},
+		"effect": {
+		  "status": "Started"
+		}
+	  },
+	  {
+		"name": "delete",
+		"condition": {
+		  "status": "Started"
+		},
+		"effect": {
+		  "status": "Deleted"
+		}
+	  }
+	]
+  },
+  {
+	"uid": "ExtVnfCpd2",
+	"types": [
+	  "tosca.nodes.nfv.VnfExtCpd",
+	  "tosca.nodes.nfv.Cpd",
+	  "tosca.nodes.Root"
+	],
+	"attributes": {
+	  "status": "Started",
+	  "resource_id": null,
+	  "ip_address": null
+	},
+	"references": [],
+	"interfaces": [
+	  {
+		"name": "create",
+		"condition": {
+		  "status": "Initial"
+		},
+		"effect": {
+		  "status": "Started"
+		}
+	  },
+	  {
+		"name": "delete",
+		"condition": {
+		  "status": "Started"
+		},
+		"effect": {
+		  "status": "Deleted"
+		}
+	  }
+	]
+  }
+]
