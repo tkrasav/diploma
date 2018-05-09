@@ -2,6 +2,11 @@ from typing import List
 import structure
 from enum import Enum
 import itertools
+import time
+from collections import namedtuple
+
+def millis():
+    return int(round(time.time() * 1000))
 
 
 class Indicator(Enum):
@@ -192,6 +197,85 @@ def generate_sas(nodes: List[structure.Node]) -> dict:
 	return output
 
 
+def probe():
+    start_time = time.time()
+    start_state = structure.parse('../res/current.json')
+    out = generate_sas(start_state)
+    target_state = structure.parse('../res/target.json')
+    goal = generate_sas(target_state)
+    file = open("output_sample.sas", "w+")
+    file.write(
+        "begin_version\n" +
+        str(3) + "\n" +
+        "end_version\n" +
+        "begin_metric\n" +
+        str(0) + "\n" +
+        "end_metric\n" +
+        str(len(out['variables'])) + "\n"
+    )
+    for key in out['variables']:
+        var = out['variables'][key]
+        statuses = "".join(i.__str__() + "\n" for i in var.values)
+        file.write(
+            "begin_variable\n" +
+            var.name + "\n" +
+            str(var.indicator.value) + "\n" +
+            str(var.len) + "\n" +
+            statuses +
+            "end_variable\n"
+        )
+
+    state_ids = "".join(
+        str(st) + "\n" for st in out["state"]
+    )
+    file.write(
+        "0\n" +
+        "begin_state\n" +
+        state_ids +
+        "end_state\n"
+    )
+
+    order = list(out['variables'].keys())
+    order_target = list(goal['variables'].keys())
+    goal_ids = ""
+    for key in out['variables']:
+        if key == "state":
+            continue
+        current_var = out['variables'][key]
+        target_var = goal['variables'][key]
+        goal_ids += str(order.index(key)) + " " + str(goal["state"][order_target.index(key)]) + "\n"
+    file.write(
+        "begin_goal\n" +
+        str(len(out['variables'])) + "\n" +
+        goal_ids +
+        "end_goal\n"
+    )
+    file.write(
+        str(len(out['operators'])) + "\n"
+    )
+    for key in out['operators']:
+        operator = out['operators'][key]
+        conditions = "".join(
+            str(cond) + "\n" for cond in operator.conditions
+        )
+        effects = "".join(
+            str(eff) + "\n" for eff in operator.effects
+        )
+        file.write(
+            "begin_operator\n" +
+            operator.name + "\n" +
+            str(len(operator.conditions)) + "\n" +
+            conditions +
+            str(len(operator.effects)) + "\n" +
+            effects +
+            "1\n"
+            "end_operator\n"
+        )
+    done_time = time.time()
+    timer = namedtuple("timer", ["start", "end"])
+    return timer(start_time, done_time)
+    
+    
 start_state = structure.parse('../res/current.json')
 out = generate_sas(start_state)
 target_state = structure.parse('../res/target.json')
