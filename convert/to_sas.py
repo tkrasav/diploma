@@ -117,7 +117,7 @@ class Operator:
 
 
 def generate_sas(nodes: List[structure.Node]) -> dict:
-	output = {'state': [], 'variables': {}, 'operators': {}}
+	output = {'state': [], 'variables': {}, 'operators': {}, "timer": {"start": time.time(), "end": 0}}
 	for node in nodes:
 		for attr in node.attributes.__dict__.keys():
 			values = set()
@@ -194,158 +194,179 @@ def generate_sas(nodes: List[structure.Node]) -> dict:
 	# 	output[node.uid + "_" + reference.target_node] = \
 	# 		Variable(node.uid + "_" + reference.target_node, Indicator.REFERENCE, values)
 	# 	output["state"].append(0)
+	output["timer"]["end"] = time.time()
 	return output
 
 
 def probe():
-    start_time = time.time()
-    start_state = structure.parse('../res/current.json')
-    out = generate_sas(start_state)
-    target_state = structure.parse('../res/target.json')
-    goal = generate_sas(target_state)
-    file = open("output_sample.sas", "w+")
-    file.write(
-        "begin_version\n" +
-        str(3) + "\n" +
-        "end_version\n" +
-        "begin_metric\n" +
-        str(0) + "\n" +
-        "end_metric\n" +
-        str(len(out['variables'])) + "\n"
-    )
-    for key in out['variables']:
-        var = out['variables'][key]
-        statuses = "".join(i.__str__() + "\n" for i in var.values)
-        file.write(
-            "begin_variable\n" +
-            var.name + "\n" +
-            str(var.indicator.value) + "\n" +
-            str(var.len) + "\n" +
-            statuses +
-            "end_variable\n"
-        )
+	start_time = time.time()
+	start_state = structure.parse('../res/current.json')
+	out = generate_sas(start_state)
+	target_state = structure.parse('../res/target.json')
+	goal = generate_sas(target_state)
+	file = open("output_sample.sas", "w+")
+	file.write(
+		"begin_version\n" +
+		str(3) + "\n" +
+		"end_version\n" +
+		"begin_metric\n" +
+		str(0) + "\n" +
+		"end_metric\n" +
+		str(len(out['variables'])) + "\n"
+	)
+	for key in out['variables']:
+		var = out['variables'][key]
+		statuses = "".join(i.__str__() + "\n" for i in var.values)
+		file.write(
+			"begin_variable\n" +
+			var.name + "\n" +
+			str(var.indicator.value) + "\n" +
+			str(var.len) + "\n" +
+			statuses +
+			"end_variable\n"
+		)
 
-    state_ids = "".join(
-        str(st) + "\n" for st in out["state"]
-    )
-    file.write(
-        "0\n" +
-        "begin_state\n" +
-        state_ids +
-        "end_state\n"
-    )
+	state_ids = "".join(
+		str(st) + "\n" for st in out["state"]
+	)
+	file.write(
+		"0\n" +
+		"begin_state\n" +
+		state_ids +
+		"end_state\n"
+	)
 
-    order = list(out['variables'].keys())
-    order_target = list(goal['variables'].keys())
-    goal_ids = ""
-    for key in out['variables']:
-        if key == "state":
-            continue
-        current_var = out['variables'][key]
-        target_var = goal['variables'][key]
-        goal_ids += str(order.index(key)) + " " + str(goal["state"][order_target.index(key)]) + "\n"
-    file.write(
-        "begin_goal\n" +
-        str(len(out['variables'])) + "\n" +
-        goal_ids +
-        "end_goal\n"
-    )
-    file.write(
-        str(len(out['operators'])) + "\n"
-    )
-    for key in out['operators']:
-        operator = out['operators'][key]
-        conditions = "".join(
-            str(cond) + "\n" for cond in operator.conditions
-        )
-        effects = "".join(
-            str(eff) + "\n" for eff in operator.effects
-        )
-        file.write(
-            "begin_operator\n" +
-            operator.name + "\n" +
-            str(len(operator.conditions)) + "\n" +
-            conditions +
-            str(len(operator.effects)) + "\n" +
-            effects +
-            "1\n"
-            "end_operator\n"
-        )
-    done_time = time.time()
-    timer = namedtuple("timer", ["start", "end"])
-    return timer(start_time, done_time)
-    
-    
+	order = list(out['variables'].keys())
+	order_target = list(goal['variables'].keys())
+	goal_ids = ""
+	for key in out['variables']:
+		if key == "state":
+			continue
+		current_var = out['variables'][key]
+		target_var = goal['variables'][key]
+		goal_ids += str(order.index(key)) + " " + str(goal["state"][order_target.index(key)]) + "\n"
+	file.write(
+		"begin_goal\n" +
+		str(len(out['variables'])) + "\n" +
+		goal_ids +
+		"end_goal\n"
+	)
+	file.write(
+		str(len(out['operators'])) + "\n"
+	)
+	for key in out['operators']:
+		operator = out['operators'][key]
+		conditions = "".join(
+			str(cond) + "\n" for cond in operator.conditions
+		)
+		effects = "".join(
+			str(eff) + "\n" for eff in operator.effects
+		)
+		file.write(
+			"begin_operator\n" +
+			operator.name + "\n" +
+			str(len(operator.conditions)) + "\n" +
+			conditions +
+			str(len(operator.effects)) + "\n" +
+			effects +
+			"1\n" +
+			"end_operator\n"
+		)
+	done_time = time.time()
+	timer = namedtuple("timer", ["start", "end"])
+	return timer(start_time, done_time)
+
+
+def write_sas(filename: str, current_out: dict, target_out: dict):
+	file = open(filename, "w+")
+	file.write(
+		"begin_version\n" +
+		str(3) + "\n" +
+		"end_version\n" +
+		"begin_metric\n" +
+		str(0) + "\n" +
+		"end_metric\n" +
+		str(len(current_out['variables'])) + "\n"
+	)
+	for key in current_out['variables']:
+		var = current_out['variables'][key]
+		statuses = "".join(i.__str__() + "\n" for i in var.values)
+		file.write(
+			"begin_variable\n" +
+			var.name + "\n" +
+			str(var.indicator.value) + "\n" +
+			str(var.len) + "\n" +
+			statuses +
+			"end_variable\n"
+		)
+
+	state_ids = "".join(
+		str(st) + "\n" for st in current_out["state"]
+	)
+	file.write(
+		"0\n" +
+		"begin_state\n" +
+		state_ids +
+		"end_state\n"
+	)
+
+	order = list(current_out['variables'].keys())
+	order_target = list(target_out['variables'].keys())
+	goal_ids = ""
+	for key in current_out['variables']:
+		if key == "state":
+			continue
+		goal_ids += str(order.index(key)) + " " + str(target_out["state"][order_target.index(key)]) + "\n"
+	file.write(
+		"begin_goal\n" +
+		str(len(current_out['variables'])) + "\n" +
+		goal_ids +
+		"end_goal\n"
+	)
+	file.write(
+		str(len(current_out['operators'])) + "\n"
+	)
+	for key in current_out['operators']:
+		operator = current_out['operators'][key]
+		conditions = "".join(
+			str(cond) + "\n" for cond in operator.conditions
+		)
+		effects = "".join(
+			str(eff) + "\n" for eff in operator.effects
+		)
+		file.write(
+			"begin_operator\n" +
+			operator.name + "\n" +
+			str(len(operator.conditions)) + "\n" +
+			conditions +
+			str(len(operator.effects)) + "\n" +
+			effects +
+			"1\n" +
+			"end_operator\n"
+		)
+
+
+import random
+import copy
+
 start_state = structure.parse('../res/current.json')
+how_many_nodes_need = 10
+base_name = start_state[0].uid
+for i in range(how_many_nodes_need):
+	base_node = copy.deepcopy(start_state[0])
+
+	base_node.uid = base_node.uid + str(i)
+	where_choose = list(range(how_many_nodes_need))
+	where_choose.remove(i)
+	how_many_refs = random.choice([1, 2, 3])
+	rand = random.sample(where_choose, how_many_refs)
+	base_node.references = []
+	for reference in list(rand):
+		base_node.references.append(
+			structure.Reference.get_instance(base_name + str(reference), ["tosca.relationships.DependsOn"])
+		)
+
+	start_state.append(base_node)
 out = generate_sas(start_state)
-target_state = structure.parse('../res/target.json')
-goal = generate_sas(target_state)
-file = open("output_sample.sas", "w+")
-file.write(
-	"begin_version\n" +
-	str(3) + "\n" +
-	"end_version\n" +
-	"begin_metric\n" +
-	str(0) + "\n" +
-	"end_metric\n" +
-	str(len(out['variables'])) + "\n"
-)
-for key in out['variables']:
-	var = out['variables'][key]
-	statuses = "".join(i.__str__() + "\n" for i in var.values)
-	file.write(
-		"begin_variable\n" +
-		var.name + "\n" +
-		str(var.indicator.value) + "\n" +
-		str(var.len) + "\n" +
-		statuses +
-		"end_variable\n"
-	)
-
-state_ids = "".join(
-	str(st) + "\n" for st in out["state"]
-)
-file.write(
-	"0\n" +
-	"begin_state\n" +
-	state_ids +
-	"end_state\n"
-)
-
-order = list(out['variables'].keys())
-order_target = list(goal['variables'].keys())
-goal_ids = ""
-for key in out['variables']:
-	if key == "state":
-		continue
-	current_var = out['variables'][key]
-	target_var = goal['variables'][key]
-	goal_ids += str(order.index(key)) + " " + str(goal["state"][order_target.index(key)]) + "\n"
-file.write(
-	"begin_goal\n" +
-	str(len(out['variables'])) + "\n" +
-	goal_ids +
-	"end_goal\n"
-)
-file.write(
-	str(len(out['operators'])) + "\n"
-)
-for key in out['operators']:
-	operator = out['operators'][key]
-	conditions = "".join(
-		str(cond) + "\n" for cond in operator.conditions
-	)
-	effects = "".join(
-		str(eff) + "\n" for eff in operator.effects
-	)
-	file.write(
-		"begin_operator\n" +
-		operator.name + "\n" +
-		str(len(operator.conditions)) + "\n" +
-		conditions +
-		str(len(operator.effects)) + "\n" +
-		effects +
-		"1\n"
-		"end_operator\n"
-	)
+print(start_state)
 print(out)

@@ -33,13 +33,17 @@ class Interface:
 
 
 class Reference:
-	def __init__(self, arg):
+	def __init__(self, arg: dict):
 		self.target_node = arg['target_node']
 		if type(self.target_node) is not str:
 			raise ValueError
 		self.relationship_types = arg['relationship_types']
 		if type(self.relationship_types) is not list:
 			raise ValueError("Relationship types is not a list.").with_traceback(sys.exc_info()[2])
+
+	@staticmethod
+	def get_instance(target: str, relationship_types: list):
+		return Reference({'target_node': target, 'relationship_types': relationship_types})
 
 
 class Node:
