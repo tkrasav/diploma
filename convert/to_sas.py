@@ -59,8 +59,60 @@ class Variable:
 		return self.values.__str__()
 
 
+class Condition:
+	def __init__(self, variable_index: int, value_index: int):
+		self.variable_index = variable_index
+		self.value_index = value_index
+
+	def __str__(self):
+		return self.variable_index.__str__() + " " + self.value_index.__str__()
+
+	def __repr__(self):
+		return self.variable_index.__str__() + " " + self.value_index.__str__()
+
+
+class Effect:
+	def __init__(self, optional_effect: int, variable_index: int, smth: int, value_index: int):
+		self.optional_effect = optional_effect
+		self.variable_index = variable_index
+		self.value_index = value_index
+		self.smth = smth
+
+	def __str__(self):
+		return self.optional_effect.__str__() + " " + self.variable_index.__str__() + " " \
+		       + self.smth.__str__() + " " + self.value_index.__str__()
+
+	def __repr__(self):
+		return self.optional_effect.__str__() + " " + self.variable_index.__str__() + " " \
+		       + self.smth.__str__() + " " + self.value_index.__str__()
+
+
+class Operator:
+	def __init__(
+			self, name: str,
+			conditions: List[Condition],
+			effects: List[Effect]
+	):
+		self.name = name
+		self.conditions = conditions
+		self.len = len(effects)
+		self.effects = effects
+
+	def __str__(self):
+		return self.conditions.__str__()
+
+	def __repr__(self):
+		return self.conditions.__str__()
+
+	def add_condition(self, condition: Condition):
+		self.conditions.append(condition)
+
+	def add_effect(self, effect: Effect):
+		self.effects.append(effect)
+
+
 def generate_sas(nodes: List[structure.Node]) -> dict:
-	output = {'state': []}
+	output = {'state': [], 'variables': {}, 'operators': {}}
 	for node in nodes:
 		for attr in node.attributes.__dict__.keys():
 			values = set()
@@ -76,28 +128,86 @@ def generate_sas(nodes: List[structure.Node]) -> dict:
 					)
 			values = list(values)
 			values.sort(key=lambda i: i.status)
-			output[node.uid + "_" + attr] = \
+			output['variables'][node.uid + "_" + attr] = \
 				Variable(node.uid + "_" + attr, Indicator.ATTRIBUTE, values)
-			output["state"].append(values.index(AtomStatus(node.uid, node.attributes.get(attr))))
+			output['state'].append(values.index(AtomStatus(node.uid, node.attributes.get(attr))))
+
+	# Suppose that at following code order of Variables wouldn't change.
+	order = list(output['variables'].keys())
+
+	node_map = {}
+	for node in nodes:
+		node_map[node.uid] = node
+
+	for node in nodes:
+		for interface in node.interfaces:
+			output['operators'][interface.name + " " + node.uid] = Operator(interface.name + " " + node.uid, [], [])
+			for variable_name in interface.condition.__dict__.keys():
+				output['operators'][interface.name + " " + node.uid].add_condition(
+					Condition(
+						order.index(node.uid + "_" + variable_name),
+						output['variables'][node.uid + "_" + variable_name].values.index(
+							AtomStatus(node.uid, interface.condition.__dict__[variable_name]))
+					))
+			for variable_name in interface.effect.__dict__.keys():
+				output['operators'][interface.name + " " + node.uid].add_effect(
+					Effect(
+						0,
+						order.index(node.uid + "_" + variable_name),
+						-1,
+						output['variables'][node.uid + "_" + variable_name].values.index(
+							AtomStatus(node.uid, interface.effect.__dict__[variable_name]))
+					))
+
+	for node in nodes:
 		for reference in node.references:
-			values = list()
-			values.append(BindStatus(node.uid, reference.target_node, "NegatedAtom DependsOn"))
-			values.append(BindStatus(node.uid, reference.target_node, "Atom DependsOn"))
-			values.append(BindStatus(None,     None,                  None))
-			output[node.uid + "_" + reference.target_node] = \
-				Variable(node.uid + "_" + reference.target_node, Indicator.REFERENCE, values)
-			output["state"].append(0)
+			for interface in node.interfaces:
+				if interface.effect.get("status") == "Created":
+					output['operators'][interface.name + " " + node.uid].add_condition(
+						Condition(
+							order.index(reference.target_node + "_status"),
+							output['variables'][reference.target_node + "_status"].values.index(
+								AtomStatus(reference.target_node, "Created"))
+						)
+					)
+					target_node = node_map[reference.target_node]
+					for target_interface in target_node.interfaces:
+						if target_interface.effect.get("status") == "Deleted":
+							output['operators'][target_interface.name + " " + reference.target_node].add_condition(
+								Condition(
+									order.index(node.uid + "_status"),
+									output['variables'][node.uid + "_status"].values.index(
+										AtomStatus(node.uid, "Deleted"))
+								)
+							)
+
+	# for reference in node.references:
+	# 	values = list()
+	# 	values.append(BindStatus(node.uid, reference.target_node, "NegatedAtom DependsOn"))
+	# 	values.append(BindStatus(node.uid, reference.target_node, "Atom DependsOn"))
+	# 	values.append(BindStatus(None,     None,                  None))
+	# 	output[node.uid + "_" + reference.target_node] = \
+	# 		Variable(node.uid + "_" + reference.target_node, Indicator.REFERENCE, values)
+	# 	output["state"].append(0)
 	return output
 
 
 start_state = structure.parse('../res/current.json')
 out = generate_sas(start_state)
 target_state = structure.parse('../res/target.json')
+goal = generate_sas(target_state)
 file = open("output_sample.sas", "w+")
-for key in out:
-	if key == "state":
-		continue
-	var = out[key]
+file.write(
+	"begin_version\n" +
+	str(3) + "\n" +
+	"end_version\n" +
+	"begin_metric\n" +
+	str(0) + "\n" +
+	"end_metric\n" +
+	str(len(out['variables'])) + "\n"
+)
+for key in out['variables']:
+	var = out['variables'][key]
 	statuses = "".join(i.__str__() + "\n" for i in var.values)
 	file.write(
 		"begin_variable\n" +
@@ -112,8 +222,46 @@ state_ids = "".join(
 	str(st) + "\n" for st in out["state"]
 )
 file.write(
+	"0\n" +
 	"begin_state\n" +
 	state_ids +
 	"end_state\n"
 )
+
+order = list(out['variables'].keys())
+order_target = list(goal['variables'].keys())
+goal_ids = ""
+for key in out['variables']:
+	if key == "state":
+		continue
+	current_var = out['variables'][key]
+	target_var = goal['variables'][key]
+	goal_ids += str(order.index(key)) + " " + str(goal["state"][order_target.index(key)]) + "\n"
+file.write(
+	"begin_goal\n" +
+	str(len(out['variables'])) + "\n" +
+	goal_ids +
+	"end_goal\n"
+)
+file.write(
+	str(len(out['operators'])) + "\n"
+)
+for key in out['operators']:
+	operator = out['operators'][key]
+	conditions = "".join(
+		str(cond) + "\n" for cond in operator.conditions
+	)
+	effects = "".join(
+		str(eff) + "\n" for eff in operator.effects
+	)
+	file.write(
+		"begin_operator\n" +
+		operator.name + "\n" +
+		str(len(operator.conditions)) + "\n" +
+		conditions +
+		str(len(operator.effects)) + "\n" +
+		effects +
+		"1\n"
+		"end_operator\n"
+	)
 print(out)

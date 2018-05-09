@@ -7,9 +7,7 @@
       "tosca.nodes.Root"
     ],
     "attributes": {
-      "status": "Initial",
-      "resource_id": null,
-      "ip_address": null
+      "status": "Initial"
     },
     "references": [],
     "interfaces": [
@@ -19,13 +17,13 @@
           "status": "Initial"
         },
         "effect": {
-          "status": "Started"
+          "status": "Created"
         }
       },
       {
         "name": "delete",
         "condition": {
-          "status": "Started"
+          "status": "Created"
         },
         "effect": {
           "status": "Deleted"
@@ -40,10 +38,7 @@
       "tosca.nodes.Root"
     ],
     "attributes": {
-      "status": "Initial",
-      "resource_id": null,
-      "flavor_id": "m1.medium",
-      "image_id": "image_stab"
+      "status": "Initial"
     },
     "references": [
       {
@@ -83,7 +78,7 @@
       {
         "name": "delete",
         "condition": {
-          "status": "Started"
+          "status": "Created"
         },
         "effect": {
           "status": "Deleted"
@@ -99,9 +94,7 @@
       "tosca.nodes.Root"
     ],
     "attributes": {
-      "status": "Initial",
-      "resource_id": null,
-      "ip_address": "172.16.1.201"
+      "status": "Initial"
     },
     "references": [
       {
@@ -119,13 +112,13 @@
           "status": "Initial"
         },
         "effect": {
-          "status": "Started"
+          "status": "Created"
         }
       },
       {
         "name": "delete",
         "condition": {
-          "status": "Started"
+          "status": "Created"
         },
         "effect": {
           "status": "Deleted"
@@ -140,10 +133,7 @@
       "tosca.nodes.Root"
     ],
     "attributes": {
-      "status": "Initial",
-      "resource_id": null,
-      "name": "data-net",
-      "cidr": "172.16.1.0/ 24"
+      "status": "Initial"
     },
     "references": [],
     "interfaces": [
@@ -153,13 +143,13 @@
           "status": "Initial"
         },
         "effect": {
-          "status": "Started"
+          "status": "Created"
         }
       },
       {
         "name": "delete",
         "condition": {
-          "status": "Started"
+          "status": "Created"
         },
         "effect": {
           "status": "Deleted"
@@ -175,9 +165,7 @@
       "tosca.nodes.Root"
     ],
     "attributes": {
-      "status": "Initial",
-      "resource_id": null,
-      "ip_address": "172.16.1.202"
+      "status": "Initial"
     },
     "references": [
       {
@@ -195,13 +183,13 @@
           "status": "Initial"
         },
         "effect": {
-          "status": "Started"
+          "status": "Created"
         }
       },
       {
         "name": "delete",
         "condition": {
-          "status": "Started"
+          "status": "Created"
         },
         "effect": {
           "status": "Deleted"
@@ -216,10 +204,7 @@
       "tosca.nodes.Root"
     ],
     "attributes": {
-      "status": "Initial",
-      "resource_id": null,
-      "flavor_id": "m1.medium",
-      "image_id": "image_stab"
+      "status": "Initial"
     },
     "references": [
       {
@@ -259,7 +244,7 @@
       {
         "name": "delete",
         "condition": {
-          "status": "Started"
+          "status": "Created"
         },
         "effect": {
           "status": "Deleted"
@@ -275,9 +260,7 @@
       "tosca.nodes.Root"
     ],
     "attributes": {
-      "status": "Initial",
-      "resource_id": null,
-      "ip_address": null
+      "status": "Initial"
     },
     "references": [],
     "interfaces": [
@@ -287,13 +270,13 @@
           "status": "Initial"
         },
         "effect": {
-          "status": "Started"
+          "status": "Created"
         }
       },
       {
         "name": "delete",
         "condition": {
-          "status": "Started"
+          "status": "Created"
         },
         "effect": {
           "status": "Deleted"
