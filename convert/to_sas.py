@@ -240,8 +240,6 @@ def probe():
 	order_target = list(goal['variables'].keys())
 	goal_ids = ""
 	for key in out['variables']:
-		if key == "state":
-			continue
 		current_var = out['variables'][key]
 		target_var = goal['variables'][key]
 		goal_ids += str(order.index(key)) + " " + str(goal["state"][order_target.index(key)]) + "\n"
